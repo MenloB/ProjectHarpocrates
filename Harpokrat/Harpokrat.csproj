@@ -45,6 +45,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Constants\Methods.cs" />
     <Compile Include="Constants\Variables.cs" />
     <Compile Include="EncryptionAlgorithms\A51.cs" />
     <Compile Include="EncryptionAlgorithms\IEncryptionStrategy.cs" />
