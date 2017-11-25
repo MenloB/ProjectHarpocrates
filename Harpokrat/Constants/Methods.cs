@@ -18,6 +18,7 @@ namespace Harpokrat.Constants
             Variables.FileWatcherEnabled = true;
             Variables.SourceFolder       = "C:\\";
             Variables.DestinationFolder  = "C:\\";
+            Variables.FileSystem = new FileSystemWatcher();
         }
 
         #endregion
@@ -26,29 +27,35 @@ namespace Harpokrat.Constants
         [PermissionSet(SecurityAction.Demand, Name="FullTrust")]
         public static void StartFileSystemWatcher()
         {
-            FileSystemWatcher fileSystem = new FileSystemWatcher();
-
             // Where to look
-            fileSystem.Path = Variables.SourceFolder;
+            Variables.FileSystem.Path = Variables.SourceFolder;
 
             // What do we want to watch
-            fileSystem.NotifyFilter = NotifyFilters.FileName | NotifyFilters.LastAccess | NotifyFilters.LastWrite |
+            Variables.FileSystem.NotifyFilter = NotifyFilters.FileName | NotifyFilters.LastAccess | NotifyFilters.LastWrite |
                 NotifyFilters.DirectoryName;
 
             // look ONLY for .txt files
-            fileSystem.Filter = "*.txt";
+            Variables.FileSystem.Filter = "*.txt";
 
             // Give the permission to track and watch the system (fancy way of saying: BEGIN WATCHING)
-            fileSystem.EnableRaisingEvents = true;
+            Variables.FileSystem.EnableRaisingEvents = true;
 
             // Handle the event of creation
-            fileSystem.Created += new FileSystemEventHandler(onCreated);
+            Variables.FileSystem.Created += new FileSystemEventHandler(onCreated);
+        }
+
+        // Stop FileSystemWatcher and dispose of it
+        public static void StopFileSystemWatcher()
+        {
+            Variables.FileSystem.EnableRaisingEvents = false;
+            Variables.FileSystem.Created -= new FileSystemEventHandler(onCreated);
+            Variables.FileSystem.Dispose();
         }
 
         #region ON_CREATED_EVENT_HANDLER
         public static void onCreated(object sender, FileSystemEventArgs args)
         {
-            MessageBox.Show(args.Name + " created");
+            MessageBox.Show(args.Name + " created", "File Created.", MessageBoxButtons.OK, MessageBoxIcon.Information, MessageBoxDefaultButton.Button1);
         }
         #endregion
         
