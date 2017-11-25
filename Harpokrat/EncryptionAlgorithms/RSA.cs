@@ -9,12 +9,12 @@ namespace Harpokrat.EncryptionAlgorithms
     // RSA algorithm in CBC mode
     public class RSA : IEncryptionStrategy
     {
-        public string Decrypt()
+        public string Decrypt(string message)
         {
             throw new NotImplementedException();
         }
 
-        public string Encrypt()
+        public string Encrypt(string message)
         {
             throw new NotImplementedException();
         }

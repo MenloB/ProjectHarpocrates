@@ -9,12 +9,12 @@ namespace Harpokrat.EncryptionAlgorithms
     //TEA/XTEA algorithm in CFB mode
     public class XTEA : IEncryptionStrategy
     {
-        public string Decrypt()
+        public string Decrypt(string message)
         {
             throw new NotImplementedException();
         }
 
-        public string Encrypt()
+        public string Encrypt(string message)
         {
             throw new NotImplementedException();
         }

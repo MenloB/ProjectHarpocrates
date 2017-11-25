@@ -48,6 +48,7 @@
     <Compile Include="Constants\Methods.cs" />
     <Compile Include="Constants\Variables.cs" />
     <Compile Include="EncryptionAlgorithms\A51.cs" />
+    <Compile Include="EncryptionAlgorithms\Context.cs" />
     <Compile Include="EncryptionAlgorithms\IEncryptionStrategy.cs" />
     <Compile Include="EncryptionAlgorithms\RSA.cs" />
     <Compile Include="EncryptionAlgorithms\SimpleSubstitutionStrategy.cs" />

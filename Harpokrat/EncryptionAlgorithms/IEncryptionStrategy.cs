@@ -8,7 +8,7 @@ namespace Harpokrat.EncryptionAlgorithms
 {
     public interface IEncryptionStrategy
     {
-        String Encrypt();
-        String Decrypt();
+        String Encrypt(string message);
+        String Decrypt(string message);
     }
 }

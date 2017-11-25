@@ -6,6 +6,9 @@ namespace Harpokrat
 {
     public partial class Form1 : Form
     {
+
+        public static EncryptionAlgorithms.Context context = new EncryptionAlgorithms.Context();
+
         public Form1()
         {
             InitializeComponent();
@@ -106,6 +109,22 @@ namespace Harpokrat
                 MessageBoxIcon.Information,
                 MessageBoxDefaultButton.Button1,
                 MessageBoxOptions.DefaultDesktopOnly);
+        }
+
+        private void button4_Click(object sender, EventArgs e)
+        {
+            context.SetEncryptionStrategy(new EncryptionAlgorithms.SimpleSubstitutionStrategy());
+
+            if (context.Test())
+                MessageBox.Show("RADI.", "Strategy set.",
+                MessageBoxButtons.OK,
+                MessageBoxIcon.Information,
+                MessageBoxDefaultButton.Button1);
+            else
+                MessageBox.Show("NE RADI.", "Strategy not set.",
+                MessageBoxButtons.OK,
+                MessageBoxIcon.Information,
+                MessageBoxDefaultButton.Button1);
         }
     }
 }

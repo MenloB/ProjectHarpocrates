@@ -9,12 +9,12 @@ namespace Harpokrat.EncryptionAlgorithms
     // A51 algorithm with custom parameters
     public class A51 : IEncryptionStrategy
     {
-        public string Decrypt()
+        public string Decrypt(string message)
         {
             throw new NotImplementedException();
         }
 
-        public string Encrypt()
+        public string Encrypt(string message)
         {
             throw new NotImplementedException();
         }
