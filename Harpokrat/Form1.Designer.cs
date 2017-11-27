@@ -31,10 +31,8 @@
             this.menuStrip1 = new System.Windows.Forms.MenuStrip();
             this.fileToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.optionsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.foldersToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.sourceToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.destinationToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.fileSystemWatcherToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.helpToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.srcFolderTextBox = new System.Windows.Forms.TextBox();
             this.groupBox1 = new System.Windows.Forms.GroupBox();
             this.stopListeningWatcherButton = new System.Windows.Forms.Button();
@@ -53,10 +51,10 @@
             this.groupBox3 = new System.Windows.Forms.GroupBox();
             this.label3 = new System.Windows.Forms.Label();
             this.button7 = new System.Windows.Forms.Button();
-            this.textBox4 = new System.Windows.Forms.TextBox();
+            this.decKeyText = new System.Windows.Forms.TextBox();
             this.button5 = new System.Windows.Forms.Button();
             this.textBox2 = new System.Windows.Forms.TextBox();
-            this.helpToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.loadKeyFromFileToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.menuStrip1.SuspendLayout();
             this.groupBox1.SuspendLayout();
             this.groupBox2.SuspendLayout();
@@ -71,7 +69,7 @@
             this.helpToolStripMenuItem});
             this.menuStrip1.Location = new System.Drawing.Point(0, 0);
             this.menuStrip1.Name = "menuStrip1";
-            this.menuStrip1.Size = new System.Drawing.Size(611, 24);
+            this.menuStrip1.Size = new System.Drawing.Size(608, 24);
             this.menuStrip1.TabIndex = 0;
             this.menuStrip1.Text = "menuStrip1";
             // 
@@ -84,33 +82,11 @@
             // optionsToolStripMenuItem
             // 
             this.optionsToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.foldersToolStripMenuItem,
-            this.fileSystemWatcherToolStripMenuItem});
+            this.fileSystemWatcherToolStripMenuItem,
+            this.loadKeyFromFileToolStripMenuItem});
             this.optionsToolStripMenuItem.Name = "optionsToolStripMenuItem";
             this.optionsToolStripMenuItem.Size = new System.Drawing.Size(61, 20);
             this.optionsToolStripMenuItem.Text = "&Options";
-            // 
-            // foldersToolStripMenuItem
-            // 
-            this.foldersToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.sourceToolStripMenuItem,
-            this.destinationToolStripMenuItem});
-            this.foldersToolStripMenuItem.Name = "foldersToolStripMenuItem";
-            this.foldersToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
-            this.foldersToolStripMenuItem.Text = "Fol&ders";
-            // 
-            // sourceToolStripMenuItem
-            // 
-            this.sourceToolStripMenuItem.Name = "sourceToolStripMenuItem";
-            this.sourceToolStripMenuItem.Size = new System.Drawing.Size(134, 22);
-            this.sourceToolStripMenuItem.Text = "Source";
-            this.sourceToolStripMenuItem.Click += new System.EventHandler(this.sourceToolStripMenuItem_Click);
-            // 
-            // destinationToolStripMenuItem
-            // 
-            this.destinationToolStripMenuItem.Name = "destinationToolStripMenuItem";
-            this.destinationToolStripMenuItem.Size = new System.Drawing.Size(134, 22);
-            this.destinationToolStripMenuItem.Text = "Destination";
             // 
             // fileSystemWatcherToolStripMenuItem
             // 
@@ -118,6 +94,12 @@
             this.fileSystemWatcherToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
             this.fileSystemWatcherToolStripMenuItem.Text = "File System Watcher";
             this.fileSystemWatcherToolStripMenuItem.Click += new System.EventHandler(this.fileSystemWatcherToolStripMenuItem_Click);
+            // 
+            // helpToolStripMenuItem
+            // 
+            this.helpToolStripMenuItem.Name = "helpToolStripMenuItem";
+            this.helpToolStripMenuItem.Size = new System.Drawing.Size(44, 20);
+            this.helpToolStripMenuItem.Text = "&Help";
             // 
             // srcFolderTextBox
             // 
@@ -273,7 +255,7 @@
             // 
             this.groupBox3.Controls.Add(this.label3);
             this.groupBox3.Controls.Add(this.button7);
-            this.groupBox3.Controls.Add(this.textBox4);
+            this.groupBox3.Controls.Add(this.decKeyText);
             this.groupBox3.Controls.Add(this.button5);
             this.groupBox3.Controls.Add(this.textBox2);
             this.groupBox3.Location = new System.Drawing.Point(267, 191);
@@ -300,13 +282,15 @@
             this.button7.TabIndex = 4;
             this.button7.Text = "...";
             this.button7.UseVisualStyleBackColor = true;
+            this.button7.Click += new System.EventHandler(this.button7_Click);
             // 
-            // textBox4
+            // decKeyText
             // 
-            this.textBox4.Location = new System.Drawing.Point(6, 151);
-            this.textBox4.Name = "textBox4";
-            this.textBox4.Size = new System.Drawing.Size(190, 20);
-            this.textBox4.TabIndex = 4;
+            this.decKeyText.Location = new System.Drawing.Point(6, 151);
+            this.decKeyText.Name = "decKeyText";
+            this.decKeyText.ReadOnly = true;
+            this.decKeyText.Size = new System.Drawing.Size(190, 20);
+            this.decKeyText.TabIndex = 4;
             // 
             // button5
             // 
@@ -316,6 +300,7 @@
             this.button5.TabIndex = 2;
             this.button5.Text = "Decrypt";
             this.button5.UseVisualStyleBackColor = true;
+            this.button5.Click += new System.EventHandler(this.button5_Click);
             // 
             // textBox2
             // 
@@ -325,17 +310,18 @@
             this.textBox2.Size = new System.Drawing.Size(321, 104);
             this.textBox2.TabIndex = 1;
             // 
-            // helpToolStripMenuItem
+            // loadKeyFromFileToolStripMenuItem
             // 
-            this.helpToolStripMenuItem.Name = "helpToolStripMenuItem";
-            this.helpToolStripMenuItem.Size = new System.Drawing.Size(44, 20);
-            this.helpToolStripMenuItem.Text = "&Help";
+            this.loadKeyFromFileToolStripMenuItem.Name = "loadKeyFromFileToolStripMenuItem";
+            this.loadKeyFromFileToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.loadKeyFromFileToolStripMenuItem.Text = "Load Key From File";
+            this.loadKeyFromFileToolStripMenuItem.Click += new System.EventHandler(this.loadKeyFromFileToolStripMenuItem_Click);
             // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(611, 380);
+            this.ClientSize = new System.Drawing.Size(608, 380);
             this.Controls.Add(this.groupBox3);
             this.Controls.Add(this.groupBox2);
             this.Controls.Add(this.groupBox1);
@@ -362,9 +348,6 @@
         private System.Windows.Forms.MenuStrip menuStrip1;
         private System.Windows.Forms.ToolStripMenuItem fileToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem optionsToolStripMenuItem;
-        private System.Windows.Forms.ToolStripMenuItem foldersToolStripMenuItem;
-        private System.Windows.Forms.ToolStripMenuItem sourceToolStripMenuItem;
-        private System.Windows.Forms.ToolStripMenuItem destinationToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem fileSystemWatcherToolStripMenuItem;
         private System.Windows.Forms.TextBox srcFolderTextBox;
         private System.Windows.Forms.GroupBox groupBox1;
@@ -383,11 +366,12 @@
         private System.Windows.Forms.GroupBox groupBox3;
         private System.Windows.Forms.Label label3;
         private System.Windows.Forms.Button button7;
-        private System.Windows.Forms.TextBox textBox4;
+        private System.Windows.Forms.TextBox decKeyText;
         private System.Windows.Forms.Button button5;
         private System.Windows.Forms.TextBox textBox2;
         private System.Windows.Forms.Button stopListeningWatcherButton;
         private System.Windows.Forms.ToolStripMenuItem helpToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem loadKeyFromFileToolStripMenuItem;
     }
 }
 

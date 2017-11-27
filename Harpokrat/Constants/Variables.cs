@@ -5,6 +5,7 @@ namespace Harpokrat.Constants
 {
     public class Variables
     {
+        public static bool KeyFromFile             { get; set; }
         public static string SourceFolder          { get; set; }
         public static string DestinationFolder     { get; set; }
         public static bool FileWatcherEnabled      { get; set; }
@@ -13,7 +14,7 @@ namespace Harpokrat.Constants
         // (not a Singleton)
         public static FileSystemWatcher FileSystem { get; set; }
 
-        public static string EncryptionKey         { get; set; }
-        public static string DecryptionKey         { get; set; }
+        public static byte[] EncryptionKey         { get; set; }
+        public static byte[] DecryptionKey         { get; set; }
     }
 }

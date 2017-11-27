@@ -31,6 +31,7 @@ namespace Harpokrat.EncryptionAlgorithms
             _strategy.Decrypt(_message);
         }
 
+        // for testing purposes
         public bool Test()
         {
             return true;
