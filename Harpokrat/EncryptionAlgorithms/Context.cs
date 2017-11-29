@@ -11,24 +11,54 @@ namespace Harpokrat.EncryptionAlgorithms
         private string              _message;
         private IEncryptionStrategy _strategy;
 
+        public string Message
+        {
+            get
+            {
+                return this._message;
+            }
+
+            set
+            {
+                this._message = value;
+            }
+        }
+
         public void SetEncryptionStrategy(IEncryptionStrategy strategy)
         {
             this._strategy = strategy;
         }
 
-        public void SetMessage(string message)
-        {
-            this._message = message;
-        }
-
         public string Encrypt()
         {
-            return _strategy.Encrypt(_message);
+            try
+            {
+                return _strategy.Encrypt(_message);
+            }
+            catch(NullReferenceException e)
+            {
+                System.Windows.Forms.MessageBox.Show("Strategy for encryption not set." + e.ToString(), "Strategy not set.", 
+                    System.Windows.Forms.MessageBoxButtons.OK, 
+                    System.Windows.Forms.MessageBoxIcon.Error, 
+                    System.Windows.Forms.MessageBoxDefaultButton.Button1);
+                return null;
+            }
         }
 
-        public void Decrypt()
+        public string Decrypt()
         {
-            _strategy.Decrypt(_message);
+            try
+            {
+                return _strategy.Decrypt(_message);
+            }
+            catch(NullReferenceException e)
+            {
+                System.Windows.Forms.MessageBox.Show("Strategy for encryption not set." + e.ToString(), "Strategy not set.",
+                    System.Windows.Forms.MessageBoxButtons.OK,
+                    System.Windows.Forms.MessageBoxIcon.Error,
+                    System.Windows.Forms.MessageBoxDefaultButton.Button1);
+                return null;
+            }
         }
 
         // for testing purposes

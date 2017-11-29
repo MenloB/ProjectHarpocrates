@@ -1,6 +1,9 @@
 ﻿using System;
 using System.Windows.Forms;
 using Harpokrat.Constants;
+using System.Diagnostics;
+using System.Text;
+using System.IO;
 
 namespace Harpokrat
 {
@@ -20,6 +23,22 @@ namespace Harpokrat
             dstFolderTextBox.Text                    = Variables.DestinationFolder;
             loadKeyFromFileToolStripMenuItem.Checked = true;
         }
+
+        #region Form_Load
+        private void Form1_Load(object sender, EventArgs e)
+        {
+            ToolTip toolTip = new ToolTip();
+
+            toolTip.AutoPopDelay = 5000;
+            toolTip.InitialDelay = 1000;
+            toolTip.ReshowDelay = 500;
+
+            toolTip.ShowAlways = true;
+
+            toolTip.SetToolTip(this.button10, "Select file you want to encrypt. (it will save it in the same destination)");
+            toolTip.SetToolTip(this.textBox5, "Select file you want to encrypt. (it will save it in the same destination)");
+        }
+        #endregion
 
         #region MenuStrip_item_function
         private void loadKeyFromFileToolStripMenuItem_Click(object sender, EventArgs e)
@@ -113,23 +132,19 @@ namespace Harpokrat
                 Variables.EncryptionKey = Methods.OpenFile(openFileDialog.FileName);
             }
 
+            // sets strategy for our context
             context.SetEncryptionStrategy(new EncryptionAlgorithms.SimpleSubstitutionStrategy());
         }
 
         // Encrypt button
         private void button4_Click(object sender, EventArgs e)
         {
-
-            if (context.Test())
-                MessageBox.Show("RADI.", "Strategy set.",
-                MessageBoxButtons.OK,
-                MessageBoxIcon.Information,
-                MessageBoxDefaultButton.Button1);
-            else
-                MessageBox.Show("NE RADI.", "Strategy not set.",
-                MessageBoxButtons.OK,
-                MessageBoxIcon.Information,
-                MessageBoxDefaultButton.Button1);
+            //var sw = Stopwatch.StartNew();
+            context.Message = textBox1.Text;
+            MessageBox.Show(context.Encrypt());
+            textBox2.Text = context.Encrypt();
+            //sw.Stop();
+            //MessageBox.Show("Encrypted within {0}", sw.ElapsedMilliseconds.ToString());
         }
         #endregion
 
@@ -148,9 +163,67 @@ namespace Harpokrat
         // Button for decrypting
         private void button5_Click(object sender, EventArgs e)
         {
-
+            // sets private field of context to a message
+            context.Message = textBox2.Text;
+            // decrypts using decrypt from strategy
+            MessageBox.Show(context.Decrypt());
+            // outputs the result
+            textBox1.Text = context.Decrypt();
         }
 
         #endregion
+
+        // Set Encryption Key
+        private void button8_Click(object sender, EventArgs e)
+        {
+            UTF8Encoding encoding   = new UTF8Encoding();
+            Variables.EncryptionKey = encoding.GetBytes(textBox3.Text.ToLower());
+            context.SetEncryptionStrategy(new EncryptionAlgorithms.SimpleSubstitutionStrategy());
+        }
+
+        // Set Decryption key
+        private void button9_Click(object sender, EventArgs e)
+        {
+            UTF8Encoding encoding   = new UTF8Encoding();
+            Variables.EncryptionKey = encoding.GetBytes(textBox4.Text.ToLower());
+            context.SetEncryptionStrategy(new EncryptionAlgorithms.SimpleSubstitutionStrategy(encoding.GetBytes(textBox4.Text.ToLower())));
+        }
+
+        // File to encrypt
+        private void button10_Click(object sender, EventArgs e)
+        {
+            var fileDialog = new OpenFileDialog();
+
+            DialogResult userClickedOK = fileDialog.ShowDialog();
+
+            if(userClickedOK == DialogResult.OK)
+            {
+                textBox5.Text = fileDialog.FileName;
+                string result = "";
+                var sw = Stopwatch.StartNew();
+                try
+                {
+                    using (FileStream fs = File.OpenRead(fileDialog.FileName))
+                    {
+                        byte[] text = new byte[16*1024];
+                        UTF8Encoding encoding = new UTF8Encoding();
+                        byte[] key = encoding.GetBytes(textBox3.Text.ToLower());
+                        while(fs.Read(text, 0, text.Length) > 0)
+                        {
+                            context.SetEncryptionStrategy(new EncryptionAlgorithms.SimpleSubstitutionStrategy(key));
+                            context.Message = System.Text.Encoding.Default.GetString(text);
+                            result += context.Encrypt();
+                        }
+
+                        File.WriteAllText(Path.GetDirectoryName(fileDialog.FileName) + @"\encrypted.txt", result);
+                    }
+                    sw.Stop();
+                    MessageBox.Show("Ellapsed Miliseconds: " + sw.ElapsedMilliseconds.ToString());
+                } catch(Exception ex)
+                {
+                    MessageBox.Show(ex.ToString());
+                }
+            }
+        }
     }
 }

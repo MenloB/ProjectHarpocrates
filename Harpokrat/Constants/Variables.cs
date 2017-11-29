@@ -15,6 +15,6 @@ namespace Harpokrat.Constants
         public static FileSystemWatcher FileSystem { get; set; }
 
         public static byte[] EncryptionKey         { get; set; }
-        public static byte[] DecryptionKey         { get; set; }
+        //public static byte[] DecryptionKey         { get; set; }
     }
 }

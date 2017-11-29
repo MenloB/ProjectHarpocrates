@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 using System.Security.Permissions;
 using System.Text;
 using System.Windows.Forms;
@@ -33,7 +34,9 @@ namespace Harpokrat.Constants
             Variables.FileSystem.Path = Variables.SourceFolder;
 
             // What do we want to watch
-            Variables.FileSystem.NotifyFilter = NotifyFilters.FileName | NotifyFilters.LastAccess | NotifyFilters.LastWrite |
+            Variables.FileSystem.NotifyFilter = NotifyFilters.FileName | 
+                NotifyFilters.LastAccess | 
+                NotifyFilters.LastWrite |
                 NotifyFilters.DirectoryName;
 
             // look ONLY for .txt files
@@ -57,6 +60,7 @@ namespace Harpokrat.Constants
         #region ON_CREATED_EVENT_HANDLER
         public static void onCreated(object sender, FileSystemEventArgs args)
         {
+            // TODO: Call encrypt function from strategy or context
             MessageBox.Show(args.Name + " created", "File Created.", MessageBoxButtons.OK, MessageBoxIcon.Information, MessageBoxDefaultButton.Button1);
         }
         #endregion
