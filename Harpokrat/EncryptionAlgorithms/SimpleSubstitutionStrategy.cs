@@ -121,7 +121,10 @@ namespace Harpokrat.EncryptionAlgorithms
             string result = "";
             message = message.ToLower();
             foreach (var character in message)
-                result += Convert.ToString(Convert.ToChar(GetValue(codedAlphabet, Convert.ToByte(character))));
+            {
+                if(GetValue(codedAlphabet, Convert.ToByte(character)) != ' ')
+                    result += Convert.ToString(Convert.ToChar(GetValue(codedAlphabet, Convert.ToByte(character))));
+            }
 
             return result;
         }
@@ -133,7 +136,10 @@ namespace Harpokrat.EncryptionAlgorithms
             string result = "";
             message = message.ToLower();
             foreach (var character in message)
-                result += Convert.ToString(Convert.ToChar(GetValue(alphabet, Convert.ToByte(character))));
+            {
+                if (GetValue(alphabet, Convert.ToByte(character)) != ' ')
+                    result += Convert.ToString(Convert.ToChar(GetValue(alphabet, Convert.ToByte(character))));
+            }
 
             return result;
         }

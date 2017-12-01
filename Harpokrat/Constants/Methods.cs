@@ -22,6 +22,7 @@ namespace Harpokrat.Constants
             Variables.SourceFolder       = "C:\\";
             Variables.DestinationFolder  = "C:\\";
             Variables.FileSystem         = new FileSystemWatcher();
+            Variables.Algorithm          = 0; //Initially SimpleSubstitutionCypher
         }
 
         #endregion
@@ -61,7 +62,7 @@ namespace Harpokrat.Constants
         public static void onCreated(object sender, FileSystemEventArgs args)
         {
             // TODO: Call encrypt function from strategy or context
-            MessageBox.Show(args.Name + " created", "File Created.", MessageBoxButtons.OK, MessageBoxIcon.Information, MessageBoxDefaultButton.Button1);
+            MessageBox.Show(sender.ToString());
         }
         #endregion
 

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using System.Collections;
 
 namespace Harpokrat.Constants
 {
@@ -16,5 +17,9 @@ namespace Harpokrat.Constants
 
         public static byte[] EncryptionKey         { get; set; }
         //public static byte[] DecryptionKey         { get; set; }
+
+        public static int Algorithm                { get; set; }
+
+        public static BitArray A51EncryptionKey    { get; set; }
     }
 }
