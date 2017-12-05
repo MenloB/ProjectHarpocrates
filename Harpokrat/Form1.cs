@@ -1,9 +1,11 @@
 ﻿using System;
+using System.Threading;
 using System.Windows.Forms;
 using Harpokrat.Constants;
 using System.Diagnostics;
 using System.Text;
 using System.IO;
+using System.Security.Permissions;
 
 namespace Harpokrat
 {
@@ -23,12 +25,22 @@ namespace Harpokrat
             }
         }
 
+        private object ThreadLock;
+        private object AlgorithmLock;
+        private object FSWLock;
+
         public Form1()
         {
             InitializeComponent();
 
             //Initializations of constant variables
             Methods.InitializeVariables();
+
+            ThreadLock    = new object();
+            AlgorithmLock = new object();
+            FSWLock       = new object();
+
+            //Thread.CurrentThread.Name = "Main Thread";
 
             srcFolderTextBox.Text                    = Variables.SourceFolder;
             dstFolderTextBox.Text                    = Variables.DestinationFolder;
@@ -107,7 +119,7 @@ namespace Harpokrat
         private void button3_Click(object sender, EventArgs e)
         {
             // Init FileSystemWatcher - begin to monitor folder specified in Constants.Variables.SourceFolder
-            Methods.StartFileSystemWatcher();
+            StartFileSystemWatcher();
 
             MessageBox.Show("Watcher attached to selected source folder.", "Watcher started.",
                 MessageBoxButtons.OK,
@@ -118,7 +130,7 @@ namespace Harpokrat
 
         private void stopListeningWatcherButton_Click(object sender, EventArgs e)
         {
-            Methods.StopFileSystemWatcher();
+            //Methods.StopFileSystemWatcher();
 
             MessageBox.Show("Watcher deatached from selected source folder.", "Watcher stoped.",
                 MessageBoxButtons.OK,
@@ -126,21 +138,6 @@ namespace Harpokrat
                 MessageBoxDefaultButton.Button1,
                 MessageBoxOptions.DefaultDesktopOnly);
         }
-
-        //public static void onCreated(object sender, FileSystemEventArgs e)
-        //{
-        //    if (Variables.EncryptionKey != null)
-        //    {
-                
-        //    }
-        //    else
-        //        MessageBox.Show("Encryption key not set. Please provide the key.", "Encryption key not set.", 
-        //            MessageBoxButtons.OK, 
-        //            MessageBoxIcon.Information, 
-        //            MessageBoxDefaultButton.Button1, 
-        //            MessageBoxOptions.DefaultDesktopOnly);
-        //}
-
         #endregion
 
         #region Encrypt_section_buttons
@@ -264,53 +261,18 @@ namespace Harpokrat
         {
             if(!(textBox3.Text.Trim().Equals(""))) { 
                 var fileDialog = new OpenFileDialog();
-                int count = 1;
                 DialogResult userClickedOK = fileDialog.ShowDialog();
 
                 if (userClickedOK == DialogResult.OK)
                 {
                     textBox5.Text = fileDialog.FileName;
-                    string result = "";
-                    var sw = Stopwatch.StartNew();
-                    try
-                    {
-                        using (FileStream fs = File.OpenRead(fileDialog.FileName))
-                        {
-                            byte[] text = new byte[16 * 1024];
-                            UTF8Encoding encoding = new UTF8Encoding();
-                            byte[] key = encoding.GetBytes(textBox3.Text.ToLower());
-                            while (fs.Read(text, 0, text.Length) > 0)
-                            {
-                                switch(Variables.Algorithm)
-                                {
-                                    case 0:
-                                        context.SetEncryptionStrategy(new EncryptionAlgorithms.SimpleSubstitutionStrategy(key));
-                                        break;
-                                    case 1:
-                                        context.SetEncryptionStrategy(new EncryptionAlgorithms.A51());
-                                        break;
-                                    case 2:
-                                        context.SetEncryptionStrategy(new EncryptionAlgorithms.XTEA());
-                                        break;
-                                    case 3:
-                                        context.SetEncryptionStrategy(new EncryptionAlgorithms.RSA());
-                                        break;
-                                }
-                                context.Message = System.Text.Encoding.Default.GetString(text);
-                                result += context.Encrypt();
-                            }
+                    UTF8Encoding encoding = new UTF8Encoding();
+                    byte[] key = encoding.GetBytes(textBox3.Text.ToLower());
 
-                            while (File.Exists(Path.GetDirectoryName(fileDialog.FileName) + @"\encrypted_" + count.ToString() + ".txt"))
-                                count++;
-                            File.WriteAllText(Path.GetDirectoryName(fileDialog.FileName) + @"\encrypted_" + count.ToString() + ".txt", result);
-                        }
-                        sw.Stop();
-                        MessageBox.Show("Ellapsed Miliseconds: " + sw.ElapsedMilliseconds.ToString());
-                    }
-                    catch (Exception ex)
-                    {
-                        MessageBox.Show(ex.ToString());
-                    }
+                    Thread t = new Thread(() => EncryptAFile(fileDialog.FileName, key));
+                    t.Name = "EncryptAFile thread";
+                    t.Start();
+
                 }
                 else
                 {
@@ -319,18 +281,42 @@ namespace Harpokrat
             }
         }
 
-        // Helper function
-        public static void EncryptAFile(TextBox txBox, string file)
+        // File to decrypt
+        private void button11_Click(object sender, EventArgs e)
         {
+            if(!(textBox4.Text.Trim().Equals("")))
+            {
+                var fileDialog = new OpenFileDialog();
+                DialogResult userClickedOK = fileDialog.ShowDialog();
+
+                if(userClickedOK == DialogResult.OK)
+                {
+                    textBox6.Text = fileDialog.FileName;
+                    UTF8Encoding encoding = new UTF8Encoding();
+                    byte[] key = encoding.GetBytes(textBox4.Text);
+
+                    Thread t = new Thread(() => DecryptAFile(fileDialog.FileName, key));
+                    t.Start();
+                }
+            }
+        }
+
+        #region Helper functions
+        // Helper functions
+        public void EncryptAFile(string file, byte[] key)
+        {
+            int count = 1;
+            string result = "";
+            var sw = Stopwatch.StartNew();
+
+            Monitor.Enter(AlgorithmLock);
+            Monitor.Enter(ThreadLock);
+
             try
             {
-                int count = 1;
-                string result = "";
                 using (FileStream fs = File.OpenRead(file))
                 {
                     byte[] text = new byte[16 * 1024];
-                    UTF8Encoding encoding = new UTF8Encoding();
-                    byte[] key = encoding.GetBytes(txBox.Text.ToLower());
                     while (fs.Read(text, 0, text.Length) > 0)
                     {
                         switch (Variables.Algorithm)
@@ -352,88 +338,161 @@ namespace Harpokrat
                         result += context.Encrypt();
                     }
 
-                    while (File.Exists(file + count.ToString() + ".txt"))
+                    while (File.Exists(Path.GetDirectoryName(file) + @"\encrypted_" + count.ToString() + ".txt"))
                         count++;
-                    File.WriteAllText(file + count.ToString() + ".txt", result);
+                    File.WriteAllText(Path.GetDirectoryName(file) + @"\encrypted_" + count.ToString() + ".txt", result);
                 }
-            } 
+                sw.Stop();
+                MessageBox.Show("Ellapsed Miliseconds: " + sw.ElapsedMilliseconds.ToString());
+                MessageBox.Show("Thread: " + Thread.CurrentThread.Name);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.ToString());
+            }
+            finally
+            {
+                Monitor.Exit(ThreadLock);
+                Monitor.Exit(AlgorithmLock);
+            }
+        }
+
+        public void DecryptAFile(string file, byte[] key)
+        {
+            int count = 1;
+            string result = "";
+            var sw = Stopwatch.StartNew();
+
+            Monitor.Enter(AlgorithmLock);
+            Monitor.Enter(ThreadLock);
+
+            try
+            {
+                using (FileStream fs = File.OpenRead(file))
+                {
+                    byte[] text = new byte[16 * 1024];
+                    while (fs.Read(text, 0, text.Length) > 0)
+                    {
+                        switch (Variables.Algorithm)
+                        {
+                            case 0:
+                                context.SetEncryptionStrategy(new EncryptionAlgorithms.SimpleSubstitutionStrategy(key));
+                                break;
+                            case 1:
+                                context.SetEncryptionStrategy(new EncryptionAlgorithms.A51());
+                                break;
+                            case 2:
+                                context.SetEncryptionStrategy(new EncryptionAlgorithms.XTEA());
+                                break;
+                            case 3:
+                                context.SetEncryptionStrategy(new EncryptionAlgorithms.RSA());
+                                break;
+                        }
+
+                        context.Message = System.Text.Encoding.Default.GetString(text);
+                        // when it wrong key is used the output file will be blank
+                        result = context.Decrypt();
+                    }
+
+                    while (File.Exists(Path.GetDirectoryName(file) + @"\decrypted_" + count.ToString() + ".txt"))
+                        count++;
+                    File.WriteAllText(Path.GetDirectoryName(file) + @"\decrypted_" + count.ToString() + ".txt", result);
+                }
+            }
             catch(IOException e)
+            {
+                MessageBox.Show(e.ToString());
+            }
+            finally
+            {
+                Monitor.Exit(ThreadLock);
+                Monitor.Exit(AlgorithmLock);
+            }
+        }
+
+        [PermissionSet(SecurityAction.Demand, Name="FullTrust")]
+        public void StartFileSystemWatcher()
+        {
+            try
+            {
+                FileSystemWatcher fsw = new FileSystemWatcher();
+                fsw.Path = Variables.SourceFolder;
+
+                fsw.NotifyFilter = NotifyFilters.FileName |
+                    NotifyFilters.DirectoryName |
+                    NotifyFilters.LastAccess |
+                    NotifyFilters.LastWrite;
+
+                fsw.Filter = "*.*";
+                fsw.EnableRaisingEvents = true;
+                fsw.Created += new FileSystemEventHandler(onCreated);
+            }
+            catch(Exception e)
             {
                 MessageBox.Show(e.ToString());
             }
         }
 
-        // File to decrypt
-        private void button11_Click(object sender, EventArgs e)
+        public void onCreated(object sender, FileSystemEventArgs args)
         {
-            if(!(textBox4.Text.Trim().Equals("")))
-            {
-                var fileDialog = new OpenFileDialog();
-                int count = 1;
-                DialogResult userClickedOK = fileDialog.ShowDialog();
-
-                if(userClickedOK == DialogResult.OK)
-                {
-                    textBox6.Text = fileDialog.FileName;
-                    string result = "";
-                    var sw = Stopwatch.StartNew();
-
-                    using (FileStream fs = File.OpenRead(fileDialog.FileName))
-                    {
-                        byte[] text = new byte[16 * 1024];
-                        UTF8Encoding encoding = new UTF8Encoding();
-                        byte[] key = encoding.GetBytes(textBox4.Text);
-                        while(fs.Read(text, 0, text.Length) > 0)
-                        {
-                            switch (Variables.Algorithm)
-                            {
-                                case 0:
-                                    context.SetEncryptionStrategy(new EncryptionAlgorithms.SimpleSubstitutionStrategy(key));
-                                    break;
-                                case 1:
-                                    context.SetEncryptionStrategy(new EncryptionAlgorithms.A51());
-                                    break;
-                                case 2:
-                                    context.SetEncryptionStrategy(new EncryptionAlgorithms.XTEA());
-                                    break;
-                                case 3:
-                                    context.SetEncryptionStrategy(new EncryptionAlgorithms.RSA());
-                                    break;
-                            }
-
-                            context.Message = System.Text.Encoding.Default.GetString(text);
-                            // when it wrong key is used the output file will be blank
-                            result = context.Decrypt();
-                        }
-
-                        while (File.Exists(Path.GetDirectoryName(fileDialog.FileName) + @"\decrypted_" + count.ToString() + ".txt"))
-                            count++;
-                        File.WriteAllText(Path.GetDirectoryName(fileDialog.FileName) + @"\decrypted_" + count.ToString() + ".txt", result);
-                    }
-                }
-            }
+            Thread t = new Thread(() => EncryptAFile(args.FullPath, Variables.EncryptionKey));
+            t.Name = "FSW Thread.";
+            t.Start();
         }
+        #endregion
 
         #region RADIO_BUTTONS
         // Radio buttons that initialize Variables.Algorithm (initially is always 0 (SimpleSubstitution)
         private void radioButton1_CheckedChanged(object sender, EventArgs e)
         {
-            Variables.Algorithm = 0;
+            Monitor.Enter(AlgorithmLock);
+            try
+            {
+                Variables.Algorithm = 0;
+            }
+            finally
+            {
+                Monitor.Exit(AlgorithmLock);
+            }
         }
 
         private void radioButton2_CheckedChanged(object sender, EventArgs e)
         {
-            Variables.Algorithm = 1;
+            Monitor.Enter(AlgorithmLock);
+            try
+            {
+                Variables.Algorithm = 1;
+            }
+            finally
+            {
+                Monitor.Exit(AlgorithmLock);
+            }
         }
 
         private void radioButton3_CheckedChanged(object sender, EventArgs e)
         {
-            Variables.Algorithm = 2;
+            Monitor.Enter(AlgorithmLock);
+            try
+            {
+                Variables.Algorithm = 2;
+            }
+            finally
+            {
+                Monitor.Exit(AlgorithmLock);
+            }
         }
 
         private void radioButton4_CheckedChanged(object sender, EventArgs e)
         {
-            Variables.Algorithm = 3;
+            Monitor.Enter(AlgorithmLock);
+            try
+            {
+                Variables.Algorithm = 3;
+            }
+            finally
+            {
+                Monitor.Exit(AlgorithmLock);
+            }
         }
         #endregion
     }
