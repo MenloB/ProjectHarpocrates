@@ -13,6 +13,7 @@ namespace Harpokrat
     {
         // Context for dinamically changing algorithms in run-time
         public static EncryptionAlgorithms.Context context = new EncryptionAlgorithms.Context();
+        private FileSystemWatcher fsw;
         public string KeyTextBox
         {
             get
@@ -46,6 +47,8 @@ namespace Harpokrat
             dstFolderTextBox.Text                    = Variables.DestinationFolder;
             loadKeyFromFileToolStripMenuItem.Checked = true;
             radioButton1.Checked                     = true;
+
+            fsw = new FileSystemWatcher();
         }
 
         #region Form_Load
@@ -130,7 +133,7 @@ namespace Harpokrat
 
         private void stopListeningWatcherButton_Click(object sender, EventArgs e)
         {
-            //Methods.StopFileSystemWatcher();
+            StopFileSystemWatcher();
 
             MessageBox.Show("Watcher deatached from selected source folder.", "Watcher stoped.",
                 MessageBoxButtons.OK,
@@ -357,6 +360,60 @@ namespace Harpokrat
             }
         }
 
+        public void EncryptAFile(string file, byte[] key, string destination)
+        {
+            int count = 1;
+            string result = "";
+            var sw = Stopwatch.StartNew();
+
+            Monitor.Enter(AlgorithmLock);
+            Monitor.Enter(ThreadLock);
+
+            try
+            {
+                using (FileStream fs = File.OpenRead(file))
+                {
+                    byte[] text = new byte[16 * 1024];
+                    while (fs.Read(text, 0, text.Length) > 0)
+                    {
+                        switch (Variables.Algorithm)
+                        {
+                            case 0:
+                                context.SetEncryptionStrategy(new EncryptionAlgorithms.SimpleSubstitutionStrategy(key));
+                                break;
+                            case 1:
+                                context.SetEncryptionStrategy(new EncryptionAlgorithms.A51());
+                                break;
+                            case 2:
+                                context.SetEncryptionStrategy(new EncryptionAlgorithms.XTEA());
+                                break;
+                            case 3:
+                                context.SetEncryptionStrategy(new EncryptionAlgorithms.RSA());
+                                break;
+                        }
+                        context.Message = System.Text.Encoding.Default.GetString(text);
+                        result += context.Encrypt();
+                    }
+
+                    while (File.Exists(destination + @"\encrypted_" + count.ToString() + ".txt"))
+                        count++;
+                    File.WriteAllText(destination + @"\encrypted_" + count.ToString() + ".txt", result);
+                }
+                sw.Stop();
+                MessageBox.Show("Ellapsed Miliseconds: " + sw.ElapsedMilliseconds.ToString());
+                MessageBox.Show("Thread: " + Thread.CurrentThread.Name);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.ToString());
+            }
+            finally
+            {
+                Monitor.Exit(ThreadLock);
+                Monitor.Exit(AlgorithmLock);
+            }
+        }
+
         public void DecryptAFile(string file, byte[] key)
         {
             int count = 1;
@@ -415,7 +472,6 @@ namespace Harpokrat
         {
             try
             {
-                FileSystemWatcher fsw = new FileSystemWatcher();
                 fsw.Path = Variables.SourceFolder;
 
                 fsw.NotifyFilter = NotifyFilters.FileName |
@@ -435,13 +491,29 @@ namespace Harpokrat
 
         public void onCreated(object sender, FileSystemEventArgs args)
         {
-            Thread t = new Thread(() => EncryptAFile(args.FullPath, Variables.EncryptionKey));
-            t.Name = "FSW Thread.";
-            t.Start();
+            try
+            {
+                Thread t = new Thread(() => EncryptAFile(args.FullPath, Variables.EncryptionKey, Variables.DestinationFolder));
+                t.Name = "FSW Thread.";
+                t.Start();
+            }
+
+            catch (NullReferenceException e)
+            {
+                MessageBox.Show(this, "Invalid key.", "Null Reference Exception",
+                    MessageBoxButtons.OK, MessageBoxIcon.Error,
+                    MessageBoxDefaultButton.Button1, MessageBoxOptions.ServiceNotification);
+            }
+        }
+
+        public void StopFileSystemWatcher()
+        {
+            fsw.EnableRaisingEvents = false;
+            fsw.Created -= new FileSystemEventHandler(onCreated);
         }
         #endregion
 
-        #region RADIO_BUTTONS
+        #region RADIO BUTTONS
         // Radio buttons that initialize Variables.Algorithm (initially is always 0 (SimpleSubstitution)
         private void radioButton1_CheckedChanged(object sender, EventArgs e)
         {
