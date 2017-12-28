@@ -89,7 +89,7 @@ namespace Harpokrat.ClientCode
         public void SendMessage()
         {
             byte[] data = new byte[1024];
-            data = Encoding.ASCII.GetBytes(Name + "says: " + Message.Message);
+            data = Encoding.ASCII.GetBytes(Message.Message);
             clientSocket.Send(data);
             MessageBox.Show(Message.SenderId.ToString());
         }

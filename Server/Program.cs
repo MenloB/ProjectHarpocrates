@@ -67,20 +67,12 @@ namespace Server
 
                 Console.WriteLine("Text received: " + text);
 
-                SocketMessage response = new SocketMessage(String.Empty);
-
-                if (text.ToLower() == "get time")
-                {
-                    response.Message = DateTime.Now.ToLongTimeString();
-                }
-                else
-                {
-                    response.Message = "Invalid request";
-                }
-
+                SocketMessage response = new SocketMessage(text);
+                
                 socket.BeginReceive(buffer, 0, buffer.Length, SocketFlags.None, new AsyncCallback(ReceiveCallback), socket);
 
-                byte[] data = Encoding.ASCII.GetBytes(response.Message);
+                byte[] data = new byte[response.Message.Length];
+                Array.Copy(Encoding.ASCII.GetBytes(response.Message), data, response.Message.Length);
                 socket.BeginSend(data, 0, data.Length, SocketFlags.None, new AsyncCallback(SendCallback), socket);
             }
             catch
