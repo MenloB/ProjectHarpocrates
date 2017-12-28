@@ -45,14 +45,23 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Client.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Client.Designer.cs">
+      <DependentUpon>Client.cs</DependentUpon>
+    </Compile>
+    <Compile Include="ClientCode\Client.cs" />
+    <Compile Include="ClientCode\Message.cs" />
     <Compile Include="Constants\Methods.cs" />
+    <Compile Include="Constants\ShiftRegisters.cs" />
     <Compile Include="Constants\Variables.cs" />
     <Compile Include="EncryptionAlgorithms\A51.cs" />
     <Compile Include="EncryptionAlgorithms\Context.cs" />
     <Compile Include="EncryptionAlgorithms\IEncryptionStrategy.cs" />
     <Compile Include="EncryptionAlgorithms\RSA.cs" />
     <Compile Include="EncryptionAlgorithms\SimpleSubstitutionStrategy.cs" />
-    <Compile Include="EncryptionAlgorithms\XTEA.cs" />
+    <Compile Include="EncryptionAlgorithms\TEA.cs" />
     <Compile Include="Form1.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -61,6 +70,9 @@
     </Compile>
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <EmbeddedResource Include="Client.resx">
+      <DependentUpon>Client.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="Form1.resx">
       <DependentUpon>Form1.cs</DependentUpon>
     </EmbeddedResource>

@@ -6,6 +6,7 @@ using System.Diagnostics;
 using System.Text;
 using System.IO;
 using System.Security.Permissions;
+using System.Collections;
 
 namespace Harpokrat
 {
@@ -13,6 +14,7 @@ namespace Harpokrat
     {
         // Context for dinamically changing algorithms in run-time
         public static EncryptionAlgorithms.Context context = new EncryptionAlgorithms.Context();
+        private Queue queue;
         private FileSystemWatcher fsw;
         public string KeyTextBox
         {
@@ -49,6 +51,8 @@ namespace Harpokrat
             radioButton1.Checked                     = true;
 
             fsw = new FileSystemWatcher();
+
+            queue = new Queue();
         }
 
         #region Form_Load
@@ -168,7 +172,7 @@ namespace Harpokrat
                     context.SetEncryptionStrategy(new EncryptionAlgorithms.A51());
                     break;
                 case 2:
-                    context.SetEncryptionStrategy(new EncryptionAlgorithms.XTEA());
+                    context.SetEncryptionStrategy(new EncryptionAlgorithms.TEA());
                     break;
                 case 3:
                     context.SetEncryptionStrategy(new EncryptionAlgorithms.RSA());
@@ -179,12 +183,25 @@ namespace Harpokrat
         // Encrypt button
         private void button4_Click(object sender, EventArgs e)
         {
-            //var sw = Stopwatch.StartNew();
+            switch (Variables.Algorithm)
+            {
+                case 0:
+                    context.SetEncryptionStrategy(new EncryptionAlgorithms.SimpleSubstitutionStrategy());
+                    break;
+                case 1:
+                    context.SetEncryptionStrategy(new EncryptionAlgorithms.A51());
+                    break;
+                case 2:
+                    context.SetEncryptionStrategy(new EncryptionAlgorithms.TEA());
+                    break;
+                case 3:
+                    context.SetEncryptionStrategy(new EncryptionAlgorithms.RSA());
+                    break;
+            }
+
             context.Message = textBox1.Text;
             MessageBox.Show(context.Encrypt());
             textBox2.Text = context.Encrypt();
-            //sw.Stop();
-            //MessageBox.Show("Encrypted within {0}", sw.ElapsedMilliseconds.ToString());
         }
         #endregion
 
@@ -203,6 +220,22 @@ namespace Harpokrat
         // Button for decrypting
         private void button5_Click(object sender, EventArgs e)
         {
+            switch (Variables.Algorithm)
+            {
+                case 0:
+                    context.SetEncryptionStrategy(new EncryptionAlgorithms.SimpleSubstitutionStrategy());
+                    break;
+                case 1:
+                    context.SetEncryptionStrategy(new EncryptionAlgorithms.A51());
+                    break;
+                case 2:
+                    context.SetEncryptionStrategy(new EncryptionAlgorithms.TEA());
+                    break;
+                case 3:
+                    context.SetEncryptionStrategy(new EncryptionAlgorithms.RSA());
+                    break;
+            }
+
             // sets private field of context to a message
             context.Message = textBox2.Text;
             // decrypts using decrypt from strategy
@@ -228,7 +261,7 @@ namespace Harpokrat
                     context.SetEncryptionStrategy(new EncryptionAlgorithms.A51());
                     break;
                 case 2:
-                    context.SetEncryptionStrategy(new EncryptionAlgorithms.XTEA());
+                    context.SetEncryptionStrategy(new EncryptionAlgorithms.TEA());
                     break;
                 case 3:
                     context.SetEncryptionStrategy(new EncryptionAlgorithms.RSA());
@@ -250,7 +283,7 @@ namespace Harpokrat
                     context.SetEncryptionStrategy(new EncryptionAlgorithms.A51());
                     break;
                 case 2:
-                    context.SetEncryptionStrategy(new EncryptionAlgorithms.XTEA());
+                    context.SetEncryptionStrategy(new EncryptionAlgorithms.TEA());
                     break;
                 case 3:
                     context.SetEncryptionStrategy(new EncryptionAlgorithms.RSA());
@@ -331,7 +364,7 @@ namespace Harpokrat
                                 context.SetEncryptionStrategy(new EncryptionAlgorithms.A51());
                                 break;
                             case 2:
-                                context.SetEncryptionStrategy(new EncryptionAlgorithms.XTEA());
+                                context.SetEncryptionStrategy(new EncryptionAlgorithms.TEA());
                                 break;
                             case 3:
                                 context.SetEncryptionStrategy(new EncryptionAlgorithms.RSA());
@@ -385,7 +418,7 @@ namespace Harpokrat
                                 context.SetEncryptionStrategy(new EncryptionAlgorithms.A51());
                                 break;
                             case 2:
-                                context.SetEncryptionStrategy(new EncryptionAlgorithms.XTEA());
+                                context.SetEncryptionStrategy(new EncryptionAlgorithms.TEA());
                                 break;
                             case 3:
                                 context.SetEncryptionStrategy(new EncryptionAlgorithms.RSA());
@@ -439,7 +472,7 @@ namespace Harpokrat
                                 context.SetEncryptionStrategy(new EncryptionAlgorithms.A51());
                                 break;
                             case 2:
-                                context.SetEncryptionStrategy(new EncryptionAlgorithms.XTEA());
+                                context.SetEncryptionStrategy(new EncryptionAlgorithms.TEA());
                                 break;
                             case 3:
                                 context.SetEncryptionStrategy(new EncryptionAlgorithms.RSA());
@@ -493,6 +526,8 @@ namespace Harpokrat
         {
             try
             {
+                //queue.Enqueue(args.FullPath);
+
                 Thread t = new Thread(() => EncryptAFile(args.FullPath, Variables.EncryptionKey, Variables.DestinationFolder));
                 t.Name = "FSW Thread.";
                 t.Start();
@@ -567,5 +602,11 @@ namespace Harpokrat
             }
         }
         #endregion
+
+        private void createClientToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            Client client = new Client();
+            client.Show();
+        }
     }
 }
